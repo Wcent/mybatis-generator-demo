@@ -1,6 +1,14 @@
 server:
   port: 8080
 
+logging:
+  level:
+    root: info
+    org:
+      cent:
+        demo:
+          mapper: trace
+
 spring:
   datasource:
     name: mytest
