@@ -4,18 +4,7 @@ server:
 logging:
   level:
     root: info
-    org:
-      cent:
-        demo:
-          mapper: trace
-
-spring:
-  datasource:
-    name: mytest
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${db-url}
-    username: ${db-user}
-    password: ${db-password}
+    org.cent.demo.mapper: trace
 
 #spring:
 #  datasource:
@@ -24,44 +13,94 @@ spring:
 #    url: jdbc:mysql://localhost:3306/mytest?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
 #    username: root
 #    password: 123456
-#    # 数据源其他配置
-#    # 数据源类型（可整合druid配置数据源监控）
-#    type: com.alibaba.druid.pool.DruidDataSource
-#    # 连接初始值，连接池启动时创建的连接数量的初始值
-#    initialSize: 5
-#    # 最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请
-#    minIdle: 5
-#    # 连接池的最大值，同一时间可以从池分配的最多连接数量，0时无限制
-#    maxActive: 20
-#    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制
-#    maxWait: 60000
-#    # 有两个含义： 1) Destroy线程会检测连接的间隔时间 2) testWhileIdle的判断依据，详细看testWhileIdle属性的说明
-#    timeBetweenEvictionRunsMillis: 60000
-#    # 连接保持空闲而不被驱逐的最长时间
-#    minEvictableIdleTimeMillis: 300000
-#    # 增加对连接池中连接的测试/验证，防止数据库认为连接已死而Web应用服务器认为连接还有效的问题
-#    # MYSQL : SELECT 1
-#    # ORACLE: SELECT 1 FROM DUAL
-#    # Microsoft SQL: SELECT 1
-#    validationQuery: SELECT 1 FROM DUAL
-#    # 指明连接是否被空闲连接回收器(如果有)进行检验.如果检测失败,则连接将被从池中去除
-#    testWhileIdle: true
-#    # 借出连接时不要测试，否则很影响性能
-#    testOnBorrow: false
-#    # 返回
-#    testOnReturn: false
-#    # 是否对已备语句进行池管理（布尔值），是否对PreparedStatement进行缓存
-#    poolPreparedStatements: true
-#    # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
-#    filters: stat,wall,log4j
-#    # 要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。
-#    # 在Druid中，不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100
-#    maxPoolPreparedStatementPerConnectionSize: 20
-#    # 配置支持配置公用监控数据
-#    useGlobalDataSourceStat: true
-#    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
+
+spring:
+  datasource:
+    name: mytest
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${db-url}
+    username: ${db-user}
+    password: ${db-password}
+#      # 数据源类型，spring boot 2.0+, 默认HikariCP数据源
+#    type: com.zaxxer.hikari.HikariDataSource
+#    hikari:
+#      pool-name: DatebookHikariCP
+#      minimum-idle: 5
+#      maximum-pool-size: 15
+#      idle-timeout: 30000
+#      max-lifetime: 1800000
+#      connection-timeout: 30000
+#      connection-test-query: SELECT 1
+#      validation-timeout: 60000
+
+
+    # 数据源类型，可使用非默认HikariCP数据源，如阿里巴巴druid，内置强大的监控功能
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 连接初始值，连接池启动时创建的连接数量的初始值
+      initialSize: 5
+      # 最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请
+      minIdle: 5
+      # 连接池的最大值，同一时间可以从池分配的最多连接数量，0时无限制
+      maxActive: 20
+      # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制
+      # 配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁
+      maxWait: 60000
+      # 是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭
+      poolPreparedStatements: false
+      # 要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。
+      # 在Druid中，不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100
+      maxPoolPreparedStatementPerConnectionSize: -1
+      # 增加对连接池中连接的测试/验证，防止数据库认为连接已死而Web应用服务器认为连接还有效的问题
+      # MYSQL : SELECT 1
+      # ORACLE: SELECT 1 FROM DUAL
+      # Microsoft SQL: SELECT 1
+      validationQuery: SELECT 1 FROM DUAL
+      # 检测超时
+      validationQueryTime: 60000
+      # 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能
+      testOnBorrow: true
+      # 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能
+      testOnReturn: false
+      # 指明连接是否被空闲连接回收器(如果有)进行检验.如果检测失败,则连接将被从池中去除
+      # 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，
+      # 如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效
+      testWhileIdle: true
+      # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作
+      keepAlive: false
+      # 有两个含义：
+      # 1) Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接
+      # 2) testWhileIdle的判断依据，详细看testWhileIdle属性的说明
+      timeBetweenEvictionRunsMillis: 60000
+      # 连接保持空闲而不被驱逐的最长时间
+      minEvictableIdleTimeMillis: 300000
+      # 通过别名的方式配置扩展插件，常用的插件有：
+      # 监控统计用的filter:stat
+      # 日志用的filter:log4j2，(log4j、log4j2、slf4j、commonLogging)
+      # 防御sql注入的filter:wall
+      filters: stat,wall,log4j
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=10000
+      # 合并多个DruidDataSource的监控数据
+      useGlobalDataSourceStat: true
 
 mybatis:
   mapper-locations:
     - classpath:mapper/**/*.xml
   type-aliases-package: org.cent.demo.domain
+
+# spring actuator 应用监控（健康探测）
+management:
+  health:
+    diskspace:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: true
+  endpoint:
+    health:
+      # never：默认配置，不展示详细信息，up或者down的状态
+      # when-authorized：详细信息将会展示给通过认证的用户。授权的角色可以通过
+      # always：暴露详细信息
+      show-details: always
